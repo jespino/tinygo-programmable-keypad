@@ -7,17 +7,20 @@ import (
 )
 
 func main() {
-	keypad := NewDevice(machine.D2, machine.D3, machine.D4, machine.D5, machine.D6, machine.D7, machine.D8, machine.D9, machine.D10, machine.D11, machine.D12, machine.D13)
-	keypad.Configure()
+	keypad := newDevice(
+		[6]machine.Pin{machine.D2, machine.D3, machine.D4, machine.D5, machine.D6, machine.D7},
+		[6]machine.Pin{machine.D8, machine.D9, machine.D10, machine.D11, machine.D12, machine.D13},
+	)
+	keypad.configure()
 	for {
 		handleKeyPress(keypad)
 		time.Sleep(100 * time.Millisecond)
 	}
 }
 
-func handleKeyPress(keypad Device) error {
+func handleKeyPress(keypad *device) error {
 	kb := keyboard.New()
-	value := keypad.GetKey()
+	value := keypad.getKey()
 	switch value {
 	case 2:
 		// "+" & backspace & Enter

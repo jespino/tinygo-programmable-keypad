@@ -10,13 +10,6 @@ import (
 // NoKeyPressed is used, when no key was pressed
 const NoKeyPressed = 255
 
-// Device is used as 4x4 keypad driver
-type Device interface {
-	Configure()
-	GetKey() uint8
-	GetIndices() (int, int)
-}
-
 // device is a driver for 4x4 keypads
 type device struct {
 	inputEnabled bool
@@ -27,17 +20,17 @@ type device struct {
 	mapping      [6][6]uint8
 }
 
-// takes r6 -r1 pins and c6 - c1 pins
-func NewDevice(r6, r5, r4, r3, r2, r1, c6, c5, c4, c3, c2, c1 machine.Pin) Device {
+// takes [r6-r1] pins and [c6-c1] pins
+func newDevice(rows [6]machine.Pin, columns [6]machine.Pin) *device {
 	result := &device{}
-	result.columns = [6]machine.Pin{c6, c5, c4, c3, c2, c1}
-	result.rows = [6]machine.Pin{r6, r5, r4, r3, r2, r1}
+	result.columns = columns
+	result.rows = rows
 
 	return result
 }
 
-// Configure sets the column pins as input and the row pins as output
-func (keypad *device) Configure() {
+// configure sets the column pins as input and the row pins as output
+func (keypad *device) configure() {
 	inputConfig := machine.PinConfig{Mode: machine.PinInputPullup}
 	for i := range keypad.columns {
 		keypad.columns[i].Configure(inputConfig)
@@ -61,10 +54,10 @@ func (keypad *device) Configure() {
 	keypad.lastRow = -1
 }
 
-// GetKey returns the code for the given key.
+// getKey returns the code for the given key.
 // returns 255 for no keyPressed
-func (keypad *device) GetKey() uint8 {
-	row, column := keypad.GetIndices()
+func (keypad *device) getKey() uint8 {
+	row, column := keypad.getIndices()
 	if row == -1 && column == -1 {
 		return NoKeyPressed
 	}
@@ -72,8 +65,8 @@ func (keypad *device) GetKey() uint8 {
 	return keypad.mapping[row][column]
 }
 
-// GetIndices returns the position of the pressed key
-func (keypad *device) GetIndices() (int, int) {
+// getIndices returns the position of the pressed key
+func (keypad *device) getIndices() (int, int) {
 	for rowIndex, rowPin := range keypad.rows {
 		rowPin.Low()
 
